@@ -1,0 +1,166 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_NAME_LENGTH 100
+
+// Define structure for student information
+typedef struct Student {
+    int rollNumber;
+    char name[MAX_NAME_LENGTH];
+    float grade;
+    struct Student* next;
+} Student;
+
+// Function prototypes
+Student* createStudent(int rollNumber, const char* name, float grade);
+void addStudent(Student** head, int rollNumber, const char* name, float grade);
+void deleteStudent(Student** head, int rollNumber);
+void displayStudents(const Student* head);
+Student* findStudent(Student* head, int rollNumber);
+void freeMemory(Student* head);
+
+int main() {
+    Student* head = NULL; // Initialize empty list of students
+    int choice, rollNumber;
+    char name[MAX_NAME_LENGTH];
+    float grade;
+
+    while (1) {
+        printf("\nStudent Management System\n");
+        printf("1. Add Student\n");
+        printf("2. Delete Student\n");
+        printf("3. Display All Students\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                // Adding a student
+                printf("Enter roll number: ");
+                scanf("%d", &rollNumber);
+                getchar();  // To consume the newline character
+                printf("Enter name: ");
+                fgets(name, sizeof(name), stdin);
+                name[strcspn(name, "\n")] = '\0'; // Remove newline character from name
+                printf("Enter grade: ");
+                scanf("%f", &grade);
+                addStudent(&head, rollNumber, name, grade);
+                printf("Student added successfully.\n");
+                break;
+            
+            case 2:
+                // Deleting a student
+                printf("Enter roll number to delete: ");
+                scanf("%d", &rollNumber);
+                deleteStudent(&head, rollNumber);
+                break;
+            
+            case 3:
+                // Display all students
+                displayStudents(head);
+                break;
+            
+            case 4:
+                // Exit the program
+                printf("Exiting...\n");
+                freeMemory(head);
+                return 0;
+
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
+}
+
+// Function to create a new student node
+Student* createStudent(int rollNumber, const char* name, float grade) {
+    Student* newStudent = (Student*)malloc(sizeof(Student));
+    if (newStudent == NULL) {
+        printf("Memory allocation failed!\n");
+        exit(1);
+    }
+    newStudent->rollNumber = rollNumber;
+    strncpy(newStudent->name, name, MAX_NAME_LENGTH);
+    newStudent->grade = grade;
+    newStudent->next = NULL;
+    return newStudent;
+}
+
+// Function to add a student to the list
+void addStudent(Student** head, int rollNumber, const char* name, float grade) {
+    Student* newStudent = createStudent(rollNumber, name, grade);
+    newStudent->next = *head;
+    *head = newStudent;
+}
+
+// Function to delete a student from the list
+void deleteStudent(Student** head, int rollNumber) {
+    Student* temp = *head;
+    Student* prev = NULL;
+
+    // If head node itself holds the rollNumber to be deleted
+    if (temp != NULL && temp->rollNumber == rollNumber) {
+        *head = temp->next; // Change head
+        free(temp); // Free memory
+        printf("Student with roll number %d deleted.\n", rollNumber);
+        return;
+    }
+
+    // Search for the roll number to be deleted
+    while (temp != NULL && temp->rollNumber != rollNumber) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // If roll number was not found in the list
+    if (temp == NULL) {
+        printf("Student with roll number %d not found.\n", rollNumber);
+        return;
+    }
+
+    // Unlink the node from the list
+    prev->next = temp->next;
+    free(temp); // Free memory
+    printf("Student with roll number %d deleted.\n", rollNumber);
+}
+
+// Function to display all students in the list
+void displayStudents(const Student* head) {
+    if (head == NULL) {
+        printf("No students to display.\n");
+        return;
+    }
+
+    printf("\nList of Students:\n");
+    printf("Roll No | Name                          | Grade\n");
+    printf("---------------------------------------------\n");
+    while (head != NULL) {
+        printf("%-8d | %-30s | %.2f\n", head->rollNumber, head->name, head->grade);
+        head = head->next;
+    }
+}
+
+// Function to find a student by roll number
+Student* findStudent(Student* head, int rollNumber) {
+    while (head != NULL) {
+        if (head->rollNumber == rollNumber) {
+            return head;
+        }
+        head = head->next;
+    }
+    return NULL;
+}
+
+// Function to free memory allocated for the student list
+void freeMemory(Student* head) {
+    Student* temp;
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
+}
